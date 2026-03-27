@@ -16,7 +16,7 @@
   --stone-dark: #2a2a2a;
   --dirt:       #c8a96e;
   --grass:      #3cb040;
-  /* --lava:       #d43020; */
+  --lava:       #d43020;
   --water:      #1a96c8;
   --path:       #ffd700;
   --bg:         #1a1008;
@@ -33,7 +33,6 @@ body {
     radial-gradient(ellipse at top, #2a1808 0%, var(--bg) 70%);
 }
 
-/* ── TITLE ── */
 h1 {
   font-size: 1.15rem;
   margin-bottom: 24px;
@@ -41,7 +40,6 @@ h1 {
   text-shadow: 3px 3px 0 #000, 5px 5px 0 rgba(0,0,0,0.4);
 }
 
-/* ── CONTROLS ── */
 .controls {
   display: flex;
   align-items: center;
@@ -145,7 +143,6 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* ── GRID ── */
 #grid-wrapper {
   display: inline-block;
   border: 5px solid var(--wood-light);
@@ -224,7 +221,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .end {
-  background: url('images/lava.png') !important;
+  background: var(--lava) !important;
   cursor: default;
 }
 
@@ -239,7 +236,6 @@ input[type="range"]::-moz-range-thumb {
   line-height: 25px;
 }
 
-/* ── STATS ── */
 #stats {
   display: flex;
   justify-content: center;
@@ -272,7 +268,6 @@ input[type="range"]::-moz-range-thumb {
   color: var(--gold);
 }
 
-/* ── LEGEND ── */
 #legend {
   display: flex;
   justify-content: center;
@@ -298,12 +293,11 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .start-swatch   { background: var(--grass); }
-.end-swatch     { background: url('images/lava.png'); }
+.end-swatch     { background: var(--lava); }
 .wall-swatch    { background: url('images/cobblestone.png') center/cover no-repeat; image-rendering: pixelated; }
 .visited-swatch { background: url('images/water.png') center/cover no-repeat; image-rendering: pixelated; }
 .path-swatch    { background: url('images/oak.png') center/cover no-repeat; image-rendering: pixelated; }
 
-/* ── HINT ── */
 #hint {
   margin-top: 10px;
   font-size: 0.32rem;
