@@ -13,7 +13,6 @@ Try it here! https://mandypengg.github.io/BlockPath/
 - **Maze generation** — recursive backtracker algorithm carves a solvable maze every time
 - **Adjustable speed** — filled slider controls animation delay from slow step-through to near-instant
 - **Live stats** — displays algorithm name, elapsed time, nodes visited, and path length after each run
-- **Instant cancel** — hitting Clear mid-run stops the algorithm immediately; no ghost animations
 - **Minecraft pixel aesthetic** — Press Start 2P font, earthy color palette, cobblestone walls, water-spread visited cells, gold path highlight
 
 ---
@@ -52,23 +51,9 @@ Or just open `index.html` directly in any modern browser.
 
 ---
 
-## Project Structure
-
-```
-pathfinding-visualizer/
-├── index.html   # Markup and layout
-├── style.css    # Minecraft-themed styling, animations, slider fill
-└── script.js    # Grid logic, BFS, Dijkstra, A*, maze generation
-```
-
----
-
-## Technical Highlights
-
-- **Run cancellation** via an incrementing `currentRunId` token checked at every `await` — eliminates async race conditions between runs
-- **Recursive backtracker maze** seeded from odd-indexed start/end coordinates to guarantee full connectivity
-- **Fisher-Yates shuffle** for unbiased maze direction randomization
-- **CSS `linear-gradient` fill** on the range slider driven by a `--fill` CSS custom property updated on each `input` event
-- **Zero dependencies** — pure vanilla JS, no frameworks or build steps
+## Tech Stack
+- HTML
+- CSS
+- JavaScript
 
 ---
