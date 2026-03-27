@@ -1,32 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Pathfinding Visualizer</title>
+  <meta charset="UTF-8">
+  <title>BlockPath</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="images/blocks.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>Pathfinding Visualizer</h1>
+  <h1>BlockPath</h1>
 
-<div class="controls">
-  <button onclick="runBFS()">Run BFS</button>
-  <button onclick="runDijkstra()">Run Dijkstra</button>
-  <button onclick="clearGrid()">Clear</button>
-  <button onclick="generateMaze()">Generate Maze</button>
-  <button onclick="runAStar()">Run A*</button>
-  <label>Speed:</label>
-  <input type="range" min="1" max="100" value="20" id="speedSlider">
-</div>
+  <div class="controls">
+    <div class="select-wrap">
+      <select id="algoSelect">
+        <option value="bfs">BFS</option>
+        <option value="dijkstra">Dijkstra</option>
+        <option value="astar">A*</option>
+      </select>
+    </div>
+    <button onclick="runAlgorithm()">Run</button>
+    <button onclick="generateMaze()">Maze</button>
+    <button onclick="clearGrid()" class="btn-clear">Clear</button>
+    <div class="speed-wrap">
+      <label for="speedSlider">Speed</label>
+      <input type="range" id="speedSlider" min="1" max="100" value="80">
+    </div>
+  </div>
 
-<div id="grid"></div>
+  <div id="grid-wrapper">
+    <div id="grid"></div>
+  </div>
 
-<div id="stats">
-  <p>Algorithm: <span id="algo"></span></p>
-  <p>Time: <span id="time"></span> ms</p>
-  <p>Visited Nodes: <span id="visited"></span></p>
-  <p>Path Length: <span id="path"></span></p>
-</div>
+  <div id="stats">
+    <div class="stat">
+      <span class="stat-label">Algorithm</span>
+      <b id="algo">—</b>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Time</span>
+      <b id="time">—</b>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Visited</span>
+      <b id="visited">—</b>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Path Length</span>
+      <b id="path">—</b>
+    </div>
+  </div>
 
-<script src="script.js"></script>
+  <div id="legend">
+    <div class="legend-item"><div class="legend-swatch start-swatch"></div><span>Start</span></div>
+    <div class="legend-item"><div class="legend-swatch end-swatch"></div><span>End</span></div>
+    <div class="legend-item"><div class="legend-swatch wall-swatch"></div><span>Wall</span></div>
+    <div class="legend-item"><div class="legend-swatch visited-swatch"></div><span>Visited</span></div>
+    <div class="legend-item"><div class="legend-swatch path-swatch"></div><span>Path</span></div>
+  </div>
+
+  <p id="hint">Click or drag cells to place walls</p>
+
+  <script src="script.js"></script>
 </body>
 </html>

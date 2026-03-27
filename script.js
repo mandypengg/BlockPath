@@ -1,58 +1,54 @@
-const rows = 20;
-const cols = 20;
+const ROWS = 20;
+const COLS = 20;
 let grid = [];
 
-let start = [0, 0];
-let end = [19, 19];
+const start = [1, 1];
+const end   = [19, 19];
 
-let speed = 20;
+let speed = 21;
 let mouseDown = false;
+let currentRunId = 0;
 
 // ------------------ SPEED ------------------
-document.getElementById("speedSlider").addEventListener("input", (e) => {
+const speedSlider = document.getElementById("speedSlider");
+ 
+function updateSliderFill(slider) {
+  const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+  slider.style.setProperty("--fill", pct + "%");
+}
+ 
+speedSlider.addEventListener("input", e => {
   speed = 101 - e.target.value;
+  updateSliderFill(e.target);
 });
+ 
+updateSliderFill(speedSlider);
 
 // ------------------ MOUSE ------------------
 document.body.onmousedown = () => mouseDown = true;
-document.body.onmouseup = () => mouseDown = false;
+document.body.onmouseup   = () => mouseDown = false;
 
 // ------------------ GRID ------------------
 function createGrid() {
-  const gridElement = document.getElementById("grid");
+  const gridEl = document.getElementById("grid");
 
-  for (let r = 0; r < rows; r++) {
-    let row = [];
-
-    for (let c = 0; c < cols; c++) {
+  for (let r = 0; r < ROWS; r++) {
+    const row = [];
+    for (let c = 0; c < COLS; c++) {
       const cell = document.createElement("div");
       cell.classList.add("cell");
-
-      cell.dataset.row = r;
-      cell.dataset.col = c;
-
-      cell.addEventListener("mousedown", () => toggleWall(cell, r, c));
-      cell.addEventListener("mouseover", () => {
-        if (mouseDown) toggleWall(cell, r, c);
-      });
-
-      gridElement.appendChild(cell);
-
-      row.push({
-        row: r,
-        col: c,
-        isWall: false,
-        element: cell,
-        prev: null,
-        distance: Infinity,
-        g: Infinity,
-        f: Infinity
-      });
+      cell.addEventListener("mousedown", () => toggleWall(r, c));
+      cell.addEventListener("mouseover", () => { if (mouseDown) toggleWall(r, c); });
+      gridEl.appendChild(cell);
+      row.push({ row: r, col: c, isWall: false, element: cell, prev: null });
     }
-
     grid.push(row);
   }
 
+  markStartEnd();
+}
+
+function markStartEnd() {
   grid[start[0]][start[1]].element.classList.add("start");
   grid[end[0]][end[1]].element.classList.add("end");
 }
@@ -60,50 +56,52 @@ function createGrid() {
 createGrid();
 
 // ------------------ WALL TOGGLE ------------------
-function toggleWall(cell, r, c) {
-  if ((r === start[0] && c === start[1]) ||
-      (r === end[0] && c === end[1])) return;
+function toggleWall(r, c) {
+  if ((r === start[0] && c === start[1]) || (r === end[0] && c === end[1])) return;
+  const cell = grid[r][c];
+  cell.isWall = !cell.isWall;
+  cell.element.classList.toggle("wall", cell.isWall);
+}
 
-  cell.classList.toggle("wall");
-  grid[r][c].isWall = !grid[r][c].isWall;
+// ---------------- RUN ALGORITHM -------------------
+function runAlgorithm() {
+  const algo = document.getElementById("algoSelect").value;
+  if (algo === "bfs")      runBFS();
+  else if (algo === "dijkstra") runDijkstra();
+  else if (algo === "astar")    runAStar();
 }
 
 // ------------------ BFS ------------------
 async function runBFS() {
   clearPath();
-
-  let startTime = performance.now();
+  const runId = ++currentRunId;
+  const t0 = performance.now();
   let visitedCount = 0;
 
-  const queue = [];
-  const visited = new Set();
-
-  let startNode = grid[start[0]][start[1]];
-  queue.push(startNode);
-  visited.add(`${startNode.row}-${startNode.col}`);
+  const startNode = grid[start[0]][start[1]];
+  const queue = [startNode];
+  const visited = new Set([nodeKey(startNode)]);
 
   while (queue.length > 0) {
-    let current = queue.shift();
+    if (runId !== currentRunId) return;
+    const current = queue.shift();
 
-    if (current.row === end[0] && current.col === end[1]) {
-      let pathLength = await drawPath(current);
-      updateStats("BFS", performance.now() - startTime, visitedCount, pathLength);
+    if (isEnd(current)) {
+      const len = await drawPath(current, runId);
+      if (runId === currentRunId) updateStats("BFS", performance.now() - t0, visitedCount, len);
       return;
     }
 
-    let neighbors = getNeighbors(current.row, current.col);
-
-    for (let neighbor of neighbors) {
-      let key = `${neighbor.row}-${neighbor.col}`;
-
+    for (const neighbor of getNeighbors(current.row, current.col)) {
+      const key = nodeKey(neighbor);
       if (!visited.has(key) && !neighbor.isWall) {
         visited.add(key);
         neighbor.prev = current;
         queue.push(neighbor);
-
         neighbor.element.classList.add("visited");
         visitedCount++;
         await sleep(speed);
+        if (runId !== currentRunId) return;
       }
     }
   }
@@ -112,47 +110,39 @@ async function runBFS() {
 // ------------------ DIJKSTRA ------------------
 async function runDijkstra() {
   clearPath();
-
-  let startTime = performance.now();
+  const runId = ++currentRunId;
+  const t0 = performance.now();
   let visitedCount = 0;
 
-  let unvisited = [];
+  for (const row of grid)
+    for (const cell of row) { cell.distance = Infinity; cell.prev = null; }
 
-  for (let row of grid) {
-    for (let cell of row) {
-      cell.distance = Infinity;
-      cell.prev = null;
-      unvisited.push(cell);
-    }
-  }
+  grid[start[0]][start[1]].distance = 0;
 
-  let startNode = grid[start[0]][start[1]];
-  startNode.distance = 0;
+  const unvisited = grid.flat();
 
   while (unvisited.length > 0) {
-    unvisited.sort((a, b) => a.distance - b.distance);
-    let current = unvisited.shift();
+    if (runId !== currentRunId) return;
 
-    if (current.isWall) continue;
-    if (current.distance === Infinity) break;
+    unvisited.sort((a, b) => a.distance - b.distance);
+    const current = unvisited.shift();
+
+    if (current.isWall || current.distance === Infinity) break;
 
     current.element.classList.add("visited");
     visitedCount++;
     await sleep(speed);
+    if (runId !== currentRunId) return;
 
-    if (current.row === end[0] && current.col === end[1]) {
-      let pathLength = await drawPath(current);
-      updateStats("Dijkstra", performance.now() - startTime, visitedCount, pathLength);
+    if (isEnd(current)) {
+      const len = await drawPath(current, runId);
+      if (runId === currentRunId) updateStats("Dijkstra", performance.now() - t0, visitedCount, len);
       return;
     }
 
-    let neighbors = getNeighbors(current.row, current.col);
-
-    for (let neighbor of neighbors) {
-      let newDist = current.distance + 1;
-
-      if (newDist < neighbor.distance) {
-        neighbor.distance = newDist;
+    for (const neighbor of getNeighbors(current.row, current.col)) {
+      if (!neighbor.isWall && current.distance + 1 < neighbor.distance) {
+        neighbor.distance = current.distance + 1;
         neighbor.prev = current;
       }
     }
@@ -162,135 +152,113 @@ async function runDijkstra() {
 // ------------------ A* ------------------
 async function runAStar() {
   clearPath();
-
-  let startTime = performance.now();
+  const runId = ++currentRunId;
+  const t0 = performance.now();
   let visitedCount = 0;
 
-  let openSet = [];
+  for (const row of grid)
+    for (const cell of row) { cell.g = Infinity; cell.f = Infinity; cell.prev = null; }
 
-  for (let row of grid) {
-    for (let cell of row) {
-      cell.g = Infinity;
-      cell.f = Infinity;
-      cell.prev = null;
-    }
-  }
-
-  let startNode = grid[start[0]][start[1]];
+  const startNode = grid[start[0]][start[1]];
+  const endNode   = grid[end[0]][end[1]];
   startNode.g = 0;
-  startNode.f = heuristic(startNode, grid[end[0]][end[1]]);
+  startNode.f = heuristic(startNode, endNode);
 
-  openSet.push(startNode);
+  const openSet = [startNode];
 
   while (openSet.length > 0) {
+    if (runId !== currentRunId) return;
+
     openSet.sort((a, b) => a.f - b.f);
-    let current = openSet.shift();
+    const current = openSet.shift();
 
     if (current.isWall) continue;
 
     current.element.classList.add("visited");
     visitedCount++;
     await sleep(speed);
+    if (runId !== currentRunId) return;
 
-    if (current.row === end[0] && current.col === end[1]) {
-      let pathLength = await drawPath(current);
-      updateStats("A*", performance.now() - startTime, visitedCount, pathLength);
+    if (isEnd(current)) {
+      const len = await drawPath(current, runId);
+      if (runId === currentRunId) updateStats("A*", performance.now() - t0, visitedCount, len);
       return;
     }
 
-    let neighbors = getNeighbors(current.row, current.col);
-
-    for (let neighbor of neighbors) {
+    for (const neighbor of getNeighbors(current.row, current.col)) {
       if (neighbor.isWall) continue;
-
-      let tempG = current.g + 1;
-
+      const tempG = current.g + 1;
       if (tempG < neighbor.g) {
         neighbor.g = tempG;
-        neighbor.f = tempG + heuristic(neighbor, grid[end[0]][end[1]]);
+        neighbor.f = tempG + heuristic(neighbor, endNode);
         neighbor.prev = current;
-
-        if (!openSet.includes(neighbor)) {
-          openSet.push(neighbor);
-        }
+        if (!openSet.includes(neighbor)) openSet.push(neighbor);
       }
     }
   }
 }
 
-// ------------------ HEURISTIC ------------------
 function heuristic(a, b) {
   return Math.abs(a.row - b.row) + Math.abs(a.col - b.col);
 }
 
 // ------------------ MAZE ------------------
+// Start [1,1] and End [19,19] 
 function generateMaze() {
-  clearGrid();
+  clearGrid(); 
 
-  for (let row of grid) {
-    for (let cell of row) {
+  for (const row of grid)
+    for (const cell of row) {
       cell.isWall = true;
       cell.element.classList.add("wall");
     }
-  }
 
   function carve(r, c) {
-    let directions = shuffle([
-      [0, 2],
-      [2, 0],
-      [0, -2],
-      [-2, 0]
-    ]);
-
-    for (let [dr, dc] of directions) {
-      let nr = r + dr;
-      let nc = c + dc;
-
-      if (nr > 0 && nr < rows && nc > 0 && nc < cols &&
-          grid[nr][nc].isWall) {
-
-        grid[r + dr / 2][c + dc / 2].isWall = false;
-        grid[r + dr / 2][c + dc / 2].element.classList.remove("wall");
-
-        grid[nr][nc].isWall = false;
-        grid[nr][nc].element.classList.remove("wall");
-
+    for (const [dr, dc] of shuffle([[0,2],[2,0],[0,-2],[-2,0]])) {
+      const nr = r + dr, nc = c + dc;
+      if (nr > 0 && nr < ROWS && nc > 0 && nc < COLS && grid[nr][nc].isWall) {
+        setOpen(r + dr / 2, c + dc / 2);
+        setOpen(nr, nc);
         carve(nr, nc);
       }
     }
   }
 
-  grid[1][1].isWall = false;
-  grid[1][1].element.classList.remove("wall");
+  setOpen(start[0], start[1]);
+  carve(start[0], start[1]);
 
-  carve(1, 1);
+  setOpen(end[0], end[1]);
 
-  grid[start[0]][start[1]].isWall = false;
-  grid[start[0]][start[1]].element.classList.remove("wall");
-
-  grid[end[0]][end[1]].isWall = false;
-  grid[end[0]][end[1]].element.classList.remove("wall");
+  markStartEnd();
 }
 
-function shuffle(array) {
-  return array.sort(() => Math.random() - 0.5);
+function setOpen(r, c) {
+  grid[r][c].isWall = false;
+  grid[r][c].element.classList.remove("wall");
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
 
 // ------------------ HELPERS ------------------
 function getNeighbors(r, c) {
-  const directions = [[0,1],[1,0],[0,-1],[-1,0]];
-  let neighbors = [];
+  return [[0,1],[1,0],[0,-1],[-1,0]]
+    .map(([dr, dc]) => [r + dr, c + dc])
+    .filter(([nr, nc]) => nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS)
+    .map(([nr, nc]) => grid[nr][nc]);
+}
 
-  for (let [dr, dc] of directions) {
-    let nr = r + dr;
-    let nc = c + dc;
+function isEnd(node) {
+  return node.row === end[0] && node.col === end[1];
+}
 
-    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-      neighbors.push(grid[nr][nc]);
-    }
-  }
-
-  return neighbors;
+function nodeKey(node) {
+  return `${node.row}-${node.col}`;
 }
 
 function sleep(ms) {
@@ -298,44 +266,52 @@ function sleep(ms) {
 }
 
 // ------------------ PATH ------------------
-async function drawPath(node) {
+async function drawPath(node, runId) {
   let current = node;
   let length = 0;
-
   while (current.prev) {
+    if (runId !== currentRunId) return 0;
     current = current.prev;
-    current.element.classList.add("path");
+    if (current.row !== start[0] || current.col !== start[1]) {
+      current.element.classList.add("path");
+    }
     length++;
     await sleep(speed);
   }
-
   return length;
 }
 
 // ------------------ CLEAR ------------------
 function clearPath() {
-  for (let row of grid) {
-    for (let cell of row) {
+  for (const row of grid)
+    for (const cell of row) {
       cell.element.classList.remove("visited", "path");
       cell.prev = null;
     }
-  }
 }
 
 function clearGrid() {
-  for (let row of grid) {
-    for (let cell of row) {
+  currentRunId++; // cancels any running algorithm
+  for (const row of grid)
+    for (const cell of row) {
       cell.element.classList.remove("visited", "path", "wall");
       cell.isWall = false;
       cell.prev = null;
     }
-  }
+  markStartEnd();
+  resetStats();
 }
 
 // ------------------ STATS ------------------
 function updateStats(algo, time, visited, pathLength) {
-  document.getElementById("algo").innerText = algo;
-  document.getElementById("time").innerText = time.toFixed(2);
-  document.getElementById("visited").innerText = visited;
-  document.getElementById("path").innerText = pathLength;
+  document.getElementById("algo").textContent    = algo;
+  document.getElementById("time").textContent    = time.toFixed(1) + " ms";
+  document.getElementById("visited").textContent = visited;
+  document.getElementById("path").textContent    = pathLength;
+}
+
+function resetStats() {
+  ["algo", "time", "visited", "path"].forEach(id => {
+    document.getElementById(id).textContent = "—";
+  });
 }
