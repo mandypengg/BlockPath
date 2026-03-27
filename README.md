@@ -2,7 +2,7 @@
 
 An interactive, Minecraft-themed pathfinding visualizer built with vanilla HTML, CSS, and JavaScript. Watch BFS, Dijkstra's, and A* explore a grid in real time — draw walls, generate mazes, and compare how each algorithm finds its way.
 
-Try it here! 
+Try it here! https://mandypengg.github.io/BlockPath/
 
 ---
 
