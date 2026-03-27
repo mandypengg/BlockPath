@@ -1,0 +1,45 @@
+body {
+  font-family: Arial;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+.controls {
+  margin-bottom: 10px;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(20, 25px);
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.cell {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #ddd;
+}
+
+.wall {
+  background-color: black;
+}
+
+.visited {
+  background-color: #4cc9f0;
+}
+
+.path {
+  background-color: yellow;
+}
+
+.start {
+  background-color: green;
+}
+
+.end {
+  background-color: red;
+}

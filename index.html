@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pathfinding Visualizer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Pathfinding Visualizer</h1>
+
+<div class="controls">
+  <button onclick="runBFS()">Run BFS</button>
+  <button onclick="runDijkstra()">Run Dijkstra</button>
+  <button onclick="clearGrid()">Clear</button>
+  <button onclick="generateMaze()">Generate Maze</button>
+  <button onclick="runAStar()">Run A*</button>
+  <label>Speed:</label>
+  <input type="range" min="1" max="100" value="20" id="speedSlider">
+</div>
+
+<div id="grid"></div>
+
+<div id="stats">
+  <p>Algorithm: <span id="algo"></span></p>
+  <p>Time: <span id="time"></span> ms</p>
+  <p>Visited Nodes: <span id="visited"></span></p>
+  <p>Path Length: <span id="path"></span></p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
