@@ -44,10 +44,10 @@ Or just open `index.html` directly in any modern browser.
 ## Usage
 
 1. **Draw walls** — click or drag across cells on the grid
-2. **Generate a maze** — click ⚒ Maze for a randomly carved solvable maze
+2. **Generate a maze** — click Maze for a randomly carved solvable maze
 3. **Pick an algorithm** — select BFS, Dijkstra, or A* from the dropdown
-4. **Run** — click ▶ Run and watch the algorithm explore
-5. **Clear** — click ✕ Clear to reset everything and cancel any running animation
+4. **Run** — click Run and watch the algorithm explore
+5. **Clear** — click Clear to reset everything and cancel any running animation
 
 ---
 
