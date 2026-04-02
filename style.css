@@ -192,8 +192,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .path {
-  background: url('images/oak.png') center/cover no-repeat !important;
-  image-rendering: pixelated;
+  background: var(--path) !important;
   animation: pathpop 0.2s ease-out;
 }
 
@@ -296,7 +295,7 @@ input[type="range"]::-moz-range-thumb {
 .end-swatch     { background: var(--lava); }
 .wall-swatch    { background: url('images/cobblestone.png') center/cover no-repeat; image-rendering: pixelated; }
 .visited-swatch { background: url('images/water.png') center/cover no-repeat; image-rendering: pixelated; }
-.path-swatch    { background: url('images/oak.png') center/cover no-repeat; image-rendering: pixelated; }
+.path-swatch    { background: var(--path); }
 
 #hint {
   margin-top: 10px;
